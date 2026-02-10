@@ -1,0 +1,334 @@
+openapi: 3.0.3
+info:
+  title: Lending Decision API
+  description: |
+    This API provides credit decision functionality for lending applications.
+    It evaluates loan applications and provides automated credit decisions.
+  version: 1.0.0
+servers:
+  - description: Integration
+    url: 'https://ingress-lending.intg.k8stest.cloud.westpac.co.nz'
+    x-maturity: dev
+  - description: System Test
+    url: 'https://ingress-lending.syst.k8stest.cloud.westpac.co.nz'
+    x-maturity: syst
+  - description: UAT
+    url: 'https://ingress-lending.uat.k8stest.cloud.westpac.co.nz'
+    x-maturity: uat
+  - description: Performance
+    url: 'https://ingress-lending.perf.k8stest.cloud.westpac.co.nz'
+    x-maturity: perf
+  - description: Production
+    url: 'https://ingress-lending.k8sprod.cloud.westpac.co.nz'
+    x-maturity: production
+tags:
+  - name: Decisions
+paths:
+  /decisions/v1:
+    post:
+      tags:
+        - Decisions
+      summary: Request a credit decision
+      operationId: decisionsV1Post
+      parameters:
+        - in: header
+          name: X-Correlation-ID
+          schema:
+            type: string
+            format: uuid
+          required: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditDecisionRequest"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditDecisionResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+        409:
+          description: Conflict - Business rules prevent decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /decisions/v1/{decisionId}:
+    get:
+      tags:
+        - Decisions
+      summary: Get decision by ID
+      operationId: decisionsV1DecisionIdGet
+      parameters:
+        - in: path
+          name: decisionId
+          required: true
+          schema:
+            type: string
+          description: The decision ID to retrieve
+        - in: header
+          name: X-Correlation-ID
+          schema:
+            type: string
+            format: uuid
+          required: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditDecisionResponse"
+        400:
+          description: Bad Request
+        401:
+          description: Unauthorized
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        ErrorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        Message:
+          type: string
+          description: 'A free text description of the error that occurred.'
+        Path:
+          type: string
+          description: 'A recommended but optional reference to the JSON Path of the field with error'
+        Url:
+          type: string
+          description: 'URL to help remediate the problem, provide more information or to API Reference.'
+    ErrorCode:
+      type: string
+      enum:
+        - Field.Expected
+        - Field.Invalid
+        - Field.Missing
+        - Field.Unexpected
+        - Header.Invalid
+        - Header.Missing
+        - QueryParam.Invalid
+        - Reauthorise
+        - Resource.Invalid
+        - Resource.Conflict
+        - UnexpectedError
+    ErrorResponse:
+      type: object
+      properties:
+        Code:
+          type: string
+          description: 'High level textual error code to help categorise the errors.'
+        Id:
+          type: string
+          description: 'A unique reference for the error instance, for audit purposes.'
+        Message:
+          type: string
+          description: 'Brief Error message.'
+        Errors:
+          type: array
+          description: Collection of errors
+          items:
+            $ref: '#/components/schemas/Error'
+    CreditDecisionRequest:
+      type: object
+      required:
+        - applicationId
+        - loanAmount
+        - loanPurpose
+        - applicant
+      properties:
+        applicationId:
+          type: string
+          description: Unique application identifier
+          example: "APP-12345"
+        loanAmount:
+          type: string
+          description: Requested loan amount
+          example: "500000.00"
+        loanPurpose:
+          type: string
+          description: Purpose of the loan
+          enum:
+            - HOME_PURCHASE
+            - REFINANCE
+            - RENOVATION
+            - INVESTMENT
+          example: "HOME_PURCHASE"
+        loanTerm:
+          type: integer
+          description: Loan term in months
+          example: 360
+        applicant:
+          $ref: "#/components/schemas/Applicant"
+        coApplicant:
+          $ref: "#/components/schemas/Applicant"
+        property:
+          $ref: "#/components/schemas/Property"
+    Applicant:
+      type: object
+      required:
+        - crsNumber
+        - firstName
+        - lastName
+        - income
+      properties:
+        crsNumber:
+          type: string
+          description: Customer Reference System number
+          example: "12345678"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Smith"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1980-05-15"
+        income:
+          type: string
+          description: Annual income
+          example: "120000.00"
+        employmentStatus:
+          type: string
+          enum:
+            - FULL_TIME
+            - PART_TIME
+            - SELF_EMPLOYED
+            - RETIRED
+            - UNEMPLOYED
+          example: "FULL_TIME"
+        creditScore:
+          type: integer
+          description: Credit score
+          example: 750
+        existingDebts:
+          type: string
+          description: Total existing debts
+          example: "50000.00"
+    Property:
+      type: object
+      properties:
+        address:
+          type: string
+          example: "123 Queen Street, Auckland"
+        propertyType:
+          type: string
+          enum:
+            - HOUSE
+            - APARTMENT
+            - TOWNHOUSE
+            - LAND
+          example: "HOUSE"
+        estimatedValue:
+          type: string
+          description: Estimated property value
+          example: "800000.00"
+        purchasePrice:
+          type: string
+          description: Purchase price
+          example: "750000.00"
+    CreditDecisionResponse:
+      type: object
+      x-class-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
+      properties:
+        decisionId:
+          type: string
+          description: Unique decision identifier
+          example: "DEC-98765"
+        applicationId:
+          type: string
+          description: Application identifier
+          example: "APP-12345"
+        decisionStatus:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+            - REFER_TO_UNDERWRITER
+            - CONDITIONAL_APPROVAL
+          example: "APPROVED"
+        decisionDate:
+          type: string
+          format: date-time
+          x-field-extra-annotation: '@com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")'
+        approvedAmount:
+          type: string
+          description: Approved loan amount
+          example: "500000.00"
+        interestRate:
+          type: string
+          description: Approved interest rate
+          example: "5.99"
+        loanToValueRatio:
+          type: string
+          description: LVR percentage
+          example: "66.67"
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionCondition"
+        decisionReasons:
+          type: array
+          items:
+            type: string
+          description: Reasons for the decision
+          example:
+            - "Strong credit history"
+            - "Stable employment"
+            - "Acceptable LVR"
+    DecisionCondition:
+      type: object
+      properties:
+        conditionCode:
+          type: string
+          example: "COND_001"
+        conditionDescription:
+          type: string
+          example: "Proof of income required"
+        conditionStatus:
+          type: string
+          enum:
+            - PENDING
+            - SATISFIED
+            - WAIVED
+          example: "PENDING"
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: X-API-KEY
+      in: header
+      description: A unique identifier (32 characters) that authenticates requests associated with the API
+security:
+  - ApiKeyAuth: []
