@@ -1,0 +1,777 @@
+I have made some changes to the JSP by removing the expenseCategorisationEnabled check as it is no longer required. But after making the change, the sorting is not working in the page.  The old code and new code are given below. Please find the cause and give me the corrected code with minimal changes to fix it.
+
+--New JSP content
+<%@ page import="com.westpac.nzlo.common.NZLOFeatures" %>
+<!-- Tag Lib Integration -->
+<%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean"%>
+<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html"%>
+<%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic"%>
+<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles"%>
+<%@ taglib uri="/WEB-INF/c.tld" prefix="c"%>
+<head>
+</head>
+
+<script>
+    function CheckForAttachments(sortColumn, tableId) {
+        if(document.getElementById(tableId)!=null)
+        {
+            sortTable(sortColumn,'documentAttach','documentAttach0');
+        }
+    }
+</script>
+
+<script type="text/javascript" src="js/lendingapplication/Attachment.js"></script>
+<script type="text/javascript"  src="js/common/MenuSubmit.js"></script>
+<script type="text/javascript"  src="js/common/sortTable.js"></script>
+<!-- Script included for NP-13945 W1201 - by Aruna Starts -->
+<script type="text/javascript"  src="js/common/partialSortTable.js"></script>
+<!-- Script included for NP-13945 W1201 - by Aruna Ends -->
+<!-- Script included for W0905 - Infoman 2784837 SIT Defect Starts -->
+<script type="text/javascript" src="js/common/ConfirmationMessage.js"></script>
+<!-- Script included for W0905 - Infoman 2784837 SIT Defect Ends -->
+<link href="style/general/tableSortStyles.css" rel="stylesheet" type="text/css" />
+
+<body onload="doOnLoad();CheckForAttachments(0,'documentAttach')">
+
+<!-- Code changes done by Aruna for NP-13945 W1201--Starts -->
+<html:form action="/addNewDocToLendingApplication" styleId="formId" readonly="${listLendingApplicationDocForm.readonly}"  enctype="multipart/form-data">
+
+    <c:set var="fileName" value="fileName" />
+    <c:set var="asc" value="asc" />
+    <c:set var="desc" value="desc" />
+    <c:set var="sortProperty" value="${listLendingApplicationDocForm.documentAtachmentVO.sortProperty}" />
+    <c:set var="sortOrder" value="${listLendingApplicationDocForm.documentAtachmentVO.sortOrder}" />
+    <c:set var="fileType" value="fileType" />
+    <c:set var="dateAndTime" value="dateAndTime" />
+    <c:set var="categoryDesc" value="categoryDesc" />
+    <!-- Code changes done by Aruna for NP-13945 W1201 on 02-12-2011 --Starts -->
+    <table>
+        <tr>
+            <td width="160" class="alignMiddle">
+                Show files from category:
+            </td>
+            <td>
+                <html:select name="listLendingApplicationDocForm" property="documentAtachmentVO.selectedFileCategory" tabindex="2" styleId="selectedAttachId" disabled="${listLendingApplicationDocForm.readonly}" onchange="filterAttachments();" >
+                    <html:option value=""> Any </html:option>
+                    <c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileCategoryList}" var="fileCategory" varStatus="fileCategoryStatus">
+                        <html:option value="${fileCategory.code}" >
+                            <c:out value="${fileCategory.description}" />
+                        </html:option>
+                    </c:forEach>
+                </html:select>
+            </td>
+        </tr>
+    </table>
+    <!-- Code changes done by Aruna for NP-13945 W1201 on 02-12-2011 --Ends -->
+    <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+    <c:choose>
+        <c:when test="${not empty listLendingApplicationDocForm.documentAtachmentVO.fileVOList}">
+            <table class="nzloStdTable width970" id="documentAttach" border="0">
+                <tr>
+                    <th width="160" class="sorted"><a href="javascript:sortTable(0,'documentAttach','documentAttach0');" title="Category" id="SortRelated1" tabindex="1">Category</a><img id="documentAttach0" src="images/sort_arrow_down.gif" name="noName" class="disappear" width="15" height="13" /></th>
+                    <th width="160" class="showRightNow"><a href="javascript:sortTable(1, 'documentAttach','documentAttach1');" title="File Name" tabindex="" id="SortRelated1">File Name</a><img id="documentAttach1" name="noName" src="images/sort_arrow_down.gif" class="disappear" width="15" height="13" /></th>
+                    <th width="186" class="noSorting">File Type</th>
+                    <th width="100" class="noSorting">Comments</th>
+                    <th width="125" class="noSorting">Upload date and time</th>
+                    <th width="30" class="noSorting">Uploaded By</th>
+                    <th class="noString"></th>
+                    <th class="noString"></th>
+                </tr>
+
+                <c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileVOList}" var="fileVO" varStatus="fileStatus">
+                <tr class="${fileStatus.index%2 == 0 ? 'odd' : 'even'}">
+                    <td width="175"><c:out value="${fileVO.categoryDesc}" /> </td>
+                    <td width="175"><c:out value="${fileVO.fileName}" /></td>
+                    <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+                    <c:if test="${fileVO.fileExtension == '.doc'}" ><td width="186"><img src="images/icon_WordDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.pdf'}" ><td width="186"><img src="images/icon_PDFDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.xls'}" ><td width="186"><img src="images/icon_ExcelDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.jpg'}" ><td width="186"><img src="images/icon_jpg.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.gif'}" ><td width="186"><img src="images/icon_gif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.tif'}" ><td width="186"><img src="images/icon_tif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.rtf'}" ><td width="186"><img src="images/icon_rtf.gif"/> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.zip'}" ><td width="186"><img src="images/icon_zip.gif" /><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.txt'}" ><td width="186"><img src="images/icon_txtfile.bmp" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.docx'}"><td width="186"><img src="images/icon_docx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.xlsx'}"><td width="186"><img src="images/icon_xlsx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <!-- MR1402 Tech refresh - moving to Office 2010 - Begins-->
+                    <c:if test="${fileVO.fileExtension == '.docm'}"><td width="186"><img src="images/icon_docm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.xlsm'}"><td width="186"><img src="images/icon_xlsm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                    <c:if test="${fileVO.fileExtension == '.html'}"><td width="186"><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+
+                    <!-- MR1402 Tech refresh - moving to Office 2010 - Ends-->
+                    <td width="100"><c:out value="${fileVO.description}" /> </td>
+                    <td width="125"><c:out value="${fileVO.dateAndTime}" /> </td>
+                    <td width="30"><c:out value="${fileVO.uploadedBy}" /> </td>
+                    <td><a href="javascript:viewdoc('<c:out value="${fileVO.oid}"/>')" id="viewAttachment1" title="view this document">View</a></td>
+                    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Starts -->
+                    <td>
+                        <c:choose>
+                            <c:when test="${!listLendingApplicationDocForm.disabled or listLendingApplicationDocForm.documentAtachmentVO.maintainAttachmentsRole}">
+                                <a href="javascript:removedoc('${fileVO.oid}')">Remove</a>
+                            </c:when>
+                            <c:otherwise></c:otherwise>
+                        </c:choose>
+                    </td>
+                    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Ends -->
+                </tr>
+                </c:forEach>
+
+            </table>
+        </c:when>
+        <c:otherwise>
+            <table>
+                <tr>
+                    <td>No documents are currently attached to the lending application</td>
+                </tr>
+            </table>
+        </c:otherwise>
+    </c:choose>
+    &nbsp;&nbsp;
+    <table>
+        <tr>
+            <td>
+                <a href="javascript:viewattach();" id="uploadattach1" title="upload a file">Upload a file</a>
+            </td>
+        </tr>
+    </table>
+
+    <div class="clearit height10"></div>
+
+    <!--  <table class="width570">
+    <tr>
+    <td width="77" class="alignMiddle">Select a file:</td>
+    <td width="481">-->
+    <!--  Changes done by Bhaskar on 24/05/2011 for  WR 13617 in W1104 Starts -->
+    <!--<html:file property="documentAtachmentVO.formFile"  title="Click Browse to select a file" styleId="docAttachFilePathId" />
+    &nbsp;-->
+    <!-- button name="Submit" < c:out value="${listLendingApplicationDocForm.disabledAsStyle}" /> onclick="addNewDoc()" tabindex="50" id="gotoAttachNewDocument" title="Attach a document to the Lending Application" accesskey="A"><span class="underline">A</span>ttach  new document</ button>< /td -->
+    <!--  <button name="Submit" onclick="addNewDoc()" tabindex="50" id="gotoAttachNewDocument" title="Attach a document to the Lending Application" accesskey="A"><span class="underline">A</span>ttach  new document</button></td>-->
+    <!--  Changes done by Bhaskar on 24/05/2011 for WR 13617 in W1104 Ends -->
+    <!-- </tr>
+    </table>-->
+
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.applicationNumber" styleId="applicationNumber" value="${listLendingApplicationDocForm.lendingApplicationNumber}"/>
+    <input type="hidden" id="contextPath" name="contextPath" value="<c:out value="${RequestScope.requestedURI}${pageContext.request.contextPath}"/>" />
+    <input type="hidden" id="initActionId" name="initAction"/>
+    <html:hidden name="listLendingApplicationDocForm" property="lendingApplicationNumber" styleId="lendingApplicationNumber"/>
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.sortProperty" styleId="propertyId"  />
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.sortOrder" styleId="orderId"  />
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.fileViewIDHidden" styleId="fileViewIDHidden" value=""/>
+    <html:hidden name="listLendingApplicationDocForm" property="fileSizeIDHidden" styleId="fileSizeIDHidden" value=""/>
+    <!-- Hidden value included for W1104 NP-13617 by Gaurav on 25/25/2011 starts
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.removeIDHidden" styleId="removeIDHidden" value=""/>
+    -->
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.oid" styleId="oid" value="${listLendingApplicationDocForm.documentAtachmentVO.oid}"/>
+
+    <!-- Hidden value included for W1104 NP-13617 by Gaurav on 25/25/2011 ends -->
+    <!-- Hidden Values included for W0905 - Infoman 2784837 SIT Defect Starts -->
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.proceedID" styleId="proceedId" value="${listLendingApplicationDocForm.documentAtachmentVO.proceedAction}" />
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.cancelID" styleId="cancelId"  value="${listLendingApplicationDocForm.documentAtachmentVO.cancelAction}" />
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.attachmentExistsFileID" styleId="attachmentExistsFileID" value="${listLendingApplicationDocForm.documentAtachmentVO.attachmentExistsFileID}"/>
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.attachmentExistsOID" styleId="attachmentExistsOID" value="${listLendingApplicationDocForm.documentAtachmentVO.attachmentExistsOID}"/>
+    <!-- hidden value removed for W1104 NP-13617 by Gaurav on 25/25/2011 starts
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.oid" styleId="oid" value=""/>
+    hidden value removed for W1104 NP-13617 by Gaurav on 25/25/2011 ends -->
+    <html:hidden property="actionType" styleId="actionType" />
+    <c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileCategoryList}" var="fileCategory" varStatus="fileCategoryStatus">
+        <html:hidden property="documentAtachmentVO.fileCategoryList[${fileCategoryStatus.index}].code" styleId="code${fileCategoryStatus.index}"/>
+        <html:hidden property="documentAtachmentVO.fileCategoryList[${fileCategoryStatus.index}].description" styleId="description${fileCategoryStatus.index}"/>
+    </c:forEach>
+    <!-- Hidden Values included for W0905 - Infoman 2784837 SIT Defect Ends -->
+    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Starts -->
+    <html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.maintainAttachmentsRole" styleId="maintainAttachmentsRoleId" value="${listLendingApplicationDocForm.documentAtachmentVO.maintainAttachmentsRole}"/>
+    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Endss -->
+</html:form>
+<!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+</div>
+<!-- The right pannel content of page ends -->
+</div>
+<!-- The nzlo wide container of page ends -->
+</div>
+<!-- The main content of page ends -->
+</body>
+
+
+--Old JSP content
+<%@ page import="com.westpac.nzlo.common.NZLOFeatures" %>
+<!-- Tag Lib Integration -->
+<%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean"%>
+<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html"%>
+<%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic"%>
+<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles"%>
+<%@ taglib uri="/WEB-INF/c.tld" prefix="c"%>
+<head>
+</head>
+
+<script>
+function CheckForAttachments(sortColumn, tableId) {
+	if(document.getElementById(tableId)!=null)
+	{		
+		sortTable(sortColumn,'documentAttach','documentAttach0');
+	}
+}
+
+function sendForCategorisation(button) {
+    /*
+    Yes this is intentionally done to disable the button to stop multiple quick submissions.
+    This will be undone on page reload.
+     */
+    button.disabled = true;
+    document.listLendingApplicationDocForm.action = document.listLendingApplicationDocForm.contextPath.value + "/submitDocumentsForCategorisation.do";
+    document.listLendingApplicationDocForm.method = "post";
+    document.listLendingApplicationDocForm.submit();
+}
+</script>
+
+<script type="text/javascript" src="js/lendingapplication/Attachment.js"></script>
+<script type="text/javascript"  src="js/common/MenuSubmit.js"></script>
+<script type="text/javascript"  src="js/common/sortTable.js"></script>
+<!-- Script included for NP-13945 W1201 - by Aruna Starts -->
+<script type="text/javascript"  src="js/common/partialSortTable.js"></script>
+<!-- Script included for NP-13945 W1201 - by Aruna Ends -->
+<!-- Script included for W0905 - Infoman 2784837 SIT Defect Starts -->
+<script type="text/javascript" src="js/common/ConfirmationMessage.js"></script>
+<!-- Script included for W0905 - Infoman 2784837 SIT Defect Ends -->
+<link href="style/general/tableSortStyles.css" rel="stylesheet" type="text/css" />
+<c:set var="expenseCategorisationEnabled" scope="session" value="<%=NZLOFeatures.FEAT_EXPENSE_CATEGORISATION.isActive()%>"/>
+<c:choose>
+    <c:when test="${expenseCategorisationEnabled}">
+        <body onload="doOnLoad();CheckForAttachments(1,'documentAttach')">
+    </c:when>
+    <c:otherwise>
+        <body onload="doOnLoad();CheckForAttachments(0,'documentAttach')">
+    </c:otherwise>
+</c:choose>
+<!-- Code changes done by Aruna for NP-13945 W1201--Starts -->
+<html:form action="/addNewDocToLendingApplication" styleId="formId" readonly="${listLendingApplicationDocForm.readonly}"  enctype="multipart/form-data">
+
+     <c:set var="fileName" value="fileName" />
+	<c:set var="asc" value="asc" />
+	<c:set var="desc" value="desc" />
+   <c:set var="sortProperty" value="${listLendingApplicationDocForm.documentAtachmentVO.sortProperty}" />
+	<c:set var="sortOrder" value="${listLendingApplicationDocForm.documentAtachmentVO.sortOrder}" />
+	<c:set var="fileType" value="fileType" />
+	<c:set var="dateAndTime" value="dateAndTime" />
+	<c:set var="categoryDesc" value="categoryDesc" />
+	 <!-- Code changes done by Aruna for NP-13945 W1201 on 02-12-2011 --Starts -->
+	 <table>
+         <tr>
+	           <td width="160" class="alignMiddle">
+	               Show files from category:
+	           </td>
+	           <td>
+					<html:select name="listLendingApplicationDocForm" property="documentAtachmentVO.selectedFileCategory" tabindex="2" styleId="selectedAttachId" disabled="${listLendingApplicationDocForm.readonly}" onchange="filterAttachments();" >
+					<html:option value=""> Any </html:option>	
+					<c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileCategoryList}" var="fileCategory" varStatus="fileCategoryStatus">
+						<html:option value="${fileCategory.code}" >
+									<c:out value="${fileCategory.description}" />
+								</html:option>
+							</c:forEach>
+					</html:select> 
+				</td>
+        </tr>
+	 </table>
+	  <!-- Code changes done by Aruna for NP-13945 W1201 on 02-12-2011 --Ends -->
+	  <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+    <c:choose>
+        <c:when test="${not empty listLendingApplicationDocForm.documentAtachmentVO.fileVOList}">
+            <table class="nzloStdTable width970" id="documentAttach" border="0">
+                <tr>
+                    <c:choose>
+                        <c:when test="${expenseCategorisationEnabled}">
+                            <th style="width:30px"></th>
+                            <th width="160" class="sorted"><a href="javascript:sortTable(1,'documentAttach','documentAttach0');" title="Category" id="SortRelated1" tabindex="1">Category</a><img id="documentAttach0" src="images/sort_arrow_down.gif" name="noName" class="disappear" width="15" height="13" /></th>
+                            <th width="160" class="showRightNow"><a href="javascript:sortTable(2, 'documentAttach','documentAttach1');" title="File Name" tabindex="" id="SortRelated1">File Name</a><img id="documentAttach1" name="noName" src="images/sort_arrow_down.gif" class="disappear" width="15" height="13" /></th>
+                            <th width="175" class="noSorting">File Type</th>
+                            <th width="95" class="noSorting">Comments</th>
+                            <th width="120" class="noSorting">Upload date and time</th>
+                        </c:when>
+                        <c:otherwise>
+                            <th width="160" class="sorted"><a href="javascript:sortTable(0,'documentAttach','documentAttach0');" title="Category" id="SortRelated1" tabindex="1">Category</a><img id="documentAttach0" src="images/sort_arrow_down.gif" name="noName" class="disappear" width="15" height="13" /></th>
+                            <th width="160" class="showRightNow"><a href="javascript:sortTable(1, 'documentAttach','documentAttach1');" title="File Name" tabindex="" id="SortRelated1">File Name</a><img id="documentAttach1" name="noName" src="images/sort_arrow_down.gif" class="disappear" width="15" height="13" /></th>
+                            <th width="186" class="noSorting">File Type</th>
+                            <th width="100" class="noSorting">Comments</th>
+                            <th width="125" class="noSorting">Upload date and time</th>
+                        </c:otherwise>
+                    </c:choose>
+                    <th width="30" class="noSorting">Uploaded By</th>
+                    <th class="noString"></th>
+                    <th class="noString"></th>
+                </tr>
+
+                <c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileVOList}" var="fileVO" varStatus="fileStatus">
+                <tr class="${fileStatus.index%2 == 0 ? 'odd' : 'even'}">
+                    <c:choose>
+                        <c:when test="${expenseCategorisationEnabled}">
+                            <td style="width:30px">
+                                <input type="checkbox"
+                                       name="selectedDocuments"
+                                       value="${fileVO.oid}"/>
+                            </td>
+                            <td width="160"><c:out value="${fileVO.categoryDesc}" /></td>
+                            <td width="160"><c:out value="${fileVO.fileName}" /></td>
+                            <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+                            <c:if test="${fileVO.fileExtension == '.doc'}" ><td width="175"><img src="images/icon_WordDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.pdf'}" ><td width="175"><img src="images/icon_PDFDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xls'}" ><td width="175"><img src="images/icon_ExcelDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.jpg'}" ><td width="175"><img src="images/icon_jpg.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.gif'}" ><td width="175"><img src="images/icon_gif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.tif'}" ><td width="175"><img src="images/icon_tif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.rtf'}" ><td width="175"><img src="images/icon_rtf.gif"/> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.zip'}" ><td width="175"><img src="images/icon_zip.gif" /><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.txt'}" ><td width="175"><img src="images/icon_txtfile.bmp" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.docx'}"><td width="175"><img src="images/icon_docx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xlsx'}"><td width="175"><img src="images/icon_xlsx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <!-- MR1402 Tech refresh - moving to Office 2010 - Begins-->
+                            <c:if test="${fileVO.fileExtension == '.docm'}"><td width="175"><img src="images/icon_docm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xlsm'}"><td width="175"><img src="images/icon_xlsm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.html'}"><td width="175"><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <!-- MR1402 Tech refresh - moving to Office 2010 - Ends-->
+                            <td width="95"><c:out value="${fileVO.description}" /> </td>
+                            <td width="120"><c:out value="${fileVO.dateAndTime}" /> </td>
+                        </c:when>
+                        <c:otherwise>
+                            <td width="175"><c:out value="${fileVO.categoryDesc}" /> </td>
+                            <td width="175"><c:out value="${fileVO.fileName}" /></td>
+                            <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+                            <c:if test="${fileVO.fileExtension == '.doc'}" ><td width="186"><img src="images/icon_WordDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.pdf'}" ><td width="186"><img src="images/icon_PDFDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xls'}" ><td width="186"><img src="images/icon_ExcelDocument.bmp" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.jpg'}" ><td width="186"><img src="images/icon_jpg.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.gif'}" ><td width="186"><img src="images/icon_gif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.tif'}" ><td width="186"><img src="images/icon_tif.gif" /> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.rtf'}" ><td width="186"><img src="images/icon_rtf.gif"/> <c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.zip'}" ><td width="186"><img src="images/icon_zip.gif" /><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.txt'}" ><td width="186"><img src="images/icon_txtfile.bmp" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.docx'}"><td width="186"><img src="images/icon_docx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xlsx'}"><td width="186"><img src="images/icon_xlsx.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <!-- MR1402 Tech refresh - moving to Office 2010 - Begins-->
+                            <c:if test="${fileVO.fileExtension == '.docm'}"><td width="186"><img src="images/icon_docm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.xlsm'}"><td width="186"><img src="images/icon_xlsm.jpeg" />&nbsp;<c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+                            <c:if test="${fileVO.fileExtension == '.html'}"><td width="186"><c:out value="${fileVO.fileType}" />(<c:out value="${fileVO.fileExtension}" />)</td></c:if>
+
+                            <!-- MR1402 Tech refresh - moving to Office 2010 - Ends-->
+                            <td width="100"><c:out value="${fileVO.description}" /> </td>
+                            <td width="125"><c:out value="${fileVO.dateAndTime}" /> </td>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <td width="30"><c:out value="${fileVO.uploadedBy}" /> </td>
+                    <td><a href="javascript:viewdoc('<c:out value="${fileVO.oid}"/>')" id="viewAttachment1" title="view this document">View</a></td>
+                    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Starts -->
+                    <c:choose>
+                        <c:when test="${(listLendingApplicationDocForm.disabled == false or listLendingApplicationDocForm.documentAtachmentVO.maintainAttachmentsRole == true) && fileVO.categoryCode ne 'ECR'}">
+                            <td>
+                                <a href="javascript:removedoc('<c:out value="${fileVO.oid}"/>')" id="removeAttachment1" title="remove attachment from Lending Application">Remove</a>
+                            </td>
+                        </c:when>
+                        <c:otherwise>
+                            <c:choose>
+                                <c:when test="${listLendingApplicationDocForm.documentAtachmentVO.maintainAttachmentsRole eq true && fileVO.categoryCode eq 'ECR'}">
+                                    <td>
+                                        <a href="javascript:removedoc('<c:out value="${fileVO.oid}"/>')" id="removeAttachment1" title="remove attachment from Lending Application">Remove</a>
+                                    </td>
+                                </c:when>
+                                <c:otherwise>
+                                    <!-- Enquiry access: Never show remove button -->
+                                    <td></td>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                    <!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Ends -->
+                    </c:forEach>
+                </tr>
+            </table>
+        </c:when>
+        <c:otherwise>
+            <table>
+                <tr>
+                    <td>No documents are currently attached to the lending application</td>
+                </tr>
+            </table>
+        </c:otherwise>
+    </c:choose>
+    &nbsp;&nbsp;
+    <table>
+        <tr>
+            <td>
+                <a href="javascript:viewattach();" id="uploadattach1" title="upload a file">Upload a file</a>
+            </td>
+        </tr>
+        <c:if test="${expenseCategorisationEnabled}">
+            <tr>
+                <td>
+                    <button type="button"
+                            onclick="sendForCategorisation(this)"
+                            id="documentCategorisationButton"
+                            title="Send for categorisation">Send for categorisation</button>
+                </td>
+            </tr>
+        </c:if>
+    </table>
+				
+                     
+	   <div class="clearit height10"></div>
+	     
+<!--  <table class="width570">
+<tr>
+<td width="77" class="alignMiddle">Select a file:</td>
+<td width="481">-->
+<!--  Changes done by Bhaskar on 24/05/2011 for  WR 13617 in W1104 Starts -->
+<!--<html:file property="documentAtachmentVO.formFile"  title="Click Browse to select a file" styleId="docAttachFilePathId" />
+ &nbsp;-->
+<!-- button name="Submit" < c:out value="${listLendingApplicationDocForm.disabledAsStyle}" /> onclick="addNewDoc()" tabindex="50" id="gotoAttachNewDocument" title="Attach a document to the Lending Application" accesskey="A"><span class="underline">A</span>ttach  new document</ button>< /td -->
+<!--  <button name="Submit" onclick="addNewDoc()" tabindex="50" id="gotoAttachNewDocument" title="Attach a document to the Lending Application" accesskey="A"><span class="underline">A</span>ttach  new document</button></td>-->
+<!--  Changes done by Bhaskar on 24/05/2011 for WR 13617 in W1104 Ends -->
+<!-- </tr>
+</table>-->
+  
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.applicationNumber" styleId="applicationNumber" value="${listLendingApplicationDocForm.lendingApplicationNumber}"/>
+<input type="hidden" id="contextPath" name="contextPath" value="<c:out value="${RequestScope.requestedURI}${pageContext.request.contextPath}"/>" />
+<input type="hidden" id="initActionId" name="initAction"/>
+<html:hidden name="listLendingApplicationDocForm" property="lendingApplicationNumber" styleId="lendingApplicationNumber"/>
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.sortProperty" styleId="propertyId"  />	
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.sortOrder" styleId="orderId"  />
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.fileViewIDHidden" styleId="fileViewIDHidden" value=""/>
+<html:hidden name="listLendingApplicationDocForm" property="fileSizeIDHidden" styleId="fileSizeIDHidden" value=""/>
+<!-- Hidden value included for W1104 NP-13617 by Gaurav on 25/25/2011 starts 
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.removeIDHidden" styleId="removeIDHidden" value=""/>
+-->
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.oid" styleId="oid" value="${listLendingApplicationDocForm.documentAtachmentVO.oid}"/>
+
+<!-- Hidden value included for W1104 NP-13617 by Gaurav on 25/25/2011 ends -->
+<!-- Hidden Values included for W0905 - Infoman 2784837 SIT Defect Starts -->
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.proceedID" styleId="proceedId" value="${listLendingApplicationDocForm.documentAtachmentVO.proceedAction}" />
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.cancelID" styleId="cancelId"  value="${listLendingApplicationDocForm.documentAtachmentVO.cancelAction}" />
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.attachmentExistsFileID" styleId="attachmentExistsFileID" value="${listLendingApplicationDocForm.documentAtachmentVO.attachmentExistsFileID}"/>
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.attachmentExistsOID" styleId="attachmentExistsOID" value="${listLendingApplicationDocForm.documentAtachmentVO.attachmentExistsOID}"/>		
+<!-- hidden value removed for W1104 NP-13617 by Gaurav on 25/25/2011 starts
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.oid" styleId="oid" value=""/>
+ hidden value removed for W1104 NP-13617 by Gaurav on 25/25/2011 ends -->
+<html:hidden property="actionType" styleId="actionType" />
+<c:forEach items="${listLendingApplicationDocForm.documentAtachmentVO.fileCategoryList}" var="fileCategory" varStatus="fileCategoryStatus">
+			<html:hidden property="documentAtachmentVO.fileCategoryList[${fileCategoryStatus.index}].code" styleId="code${fileCategoryStatus.index}"/>
+			<html:hidden property="documentAtachmentVO.fileCategoryList[${fileCategoryStatus.index}].description" styleId="description${fileCategoryStatus.index}"/>
+</c:forEach>
+<!-- Hidden Values included for W0905 - Infoman 2784837 SIT Defect Ends -->
+<!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Starts -->
+<html:hidden name="listLendingApplicationDocForm" property="documentAtachmentVO.maintainAttachmentsRole" styleId="maintainAttachmentsRoleId" value="${listLendingApplicationDocForm.documentAtachmentVO.maintainAttachmentsRole}"/>
+<!-- NP16086 - Allow incorrect attachments to be removed from completed applications for a newly created AD role:Endss -->
+</html:form>
+	 <!-- Code changes done by Aruna for NP-13945 W1201--Ends -->
+	  </div>  
+		    <!-- The right pannel content of page ends -->
+    </div>
+    <!-- The nzlo wide container of page ends -->
+  </div>
+      <!-- The main content of page ends -->
+</body>
+
+
+--sortTable.js content
+
+function setDataType(cValue)
+  {
+    // THIS FUNCTION CONVERTS DATES AND NUMBERS FOR PROPER ARRAY
+    // SORTING WHEN IN THE SORT FUNCTION
+    var isDate = new Date(cValue);
+    if (isDate == "NaN")
+      {
+        if(cValue == '')
+        {
+           return 1;
+        }
+        if (isNaN(cValue))
+          {  
+            // THE VALUE IS A STRING, MAKE ALL CHARACTERS IN
+            // STRING UPPER CASE TO ASSURE PROPER A-Z SORT
+			if(cValue.charAt(0) == '$')
+			{
+			  if(cValue.charAt(1) == ' ')
+			  {
+				  cValue = FormatTheString(cValue.substring(2));//alert(cValue);
+				  cValue = parseInt((cValue)*100); //alert(cValue);	
+			  }
+			  else
+			  {
+                  cValue = FormatTheString(cValue.substring(1));
+				  cValue = parseInt((cValue)*100); //alert(cValue);	
+			  }
+			  cValue = cValue +'';	  
+			  var myNum;			  
+              myNum = String.fromCharCode(48 + cValue.length) + cValue;               
+              return myNum; 
+			}
+			else
+			{
+             cValue = cValue.toUpperCase();
+             return cValue;
+			}
+          }
+        else
+          {
+            // VALUE IS A NUMBER, TO PREVENT STRING SORTING OF A NUMBER
+            // ADD AN ADDITIONAL DIGIT THAT IS THE + TO THE LENGTH OF
+            // THE NUMBER WHEN IT IS A STRING
+            var myNum;
+            myNum = String.fromCharCode(48 + cValue.length) + cValue; //alert(myNum);
+            return myNum;
+          }
+        }
+  else
+      {
+        // VALUE TO SORT IS A DATE, REMOVE ALL OF THE PUNCTUATION AND
+        // AND RETURN THE STRING NUMBER
+        //BUG - STRING AND NOT NUMERICAL SORT .....
+        // ( 1 - 10 - 11 - 2 - 3 - 4 - 41 - 5  etc.)
+        var myDate = new String();
+        myDate = isDate.getFullYear() + " " ;
+        myDate = myDate + isDate.getMonth() + " ";
+        var k = isDate.getDate() +'';
+        if(k.length == 1)
+        {
+          k = '0' + k;
+        }
+        myDate = myDate + k; + " ";
+        myDate = myDate + isDate.getHours(); + " ";
+        myDate = myDate + isDate.getMinutes(); + " ";
+        myDate = myDate + isDate.getSeconds();
+        //myDate = String.fromCharCode(48 + myDate.length) + myDate;
+        return myDate ;
+      }
+  }
+  
+function FormatTheString(amountWithComma)
+{
+	var inputString = amountWithComma;
+	var splittedString = inputString.split(',');
+	var joinNow = '';
+	for(var i=0; i<splittedString.length; ++i) 
+	{	
+		joinNow += splittedString[i];
+	}
+	return joinNow;
+}
+
+function appendClasses(classList, appendClass)
+{
+   var temp = new Array();
+   var returnVar='';
+   temp = classList.split(' ');
+   if(temp.length == 1)
+   {
+      returnVar = appendClass;
+   }
+   else
+   {     	  
+	  returnVar = classList.substring(0,classList.lastIndexOf(' ')+1) + appendClass;	  
+   }
+   return returnVar;
+}  
+  
+function StyleImageSettings(imgView,tabelId,colCount)
+  {
+  	var imgStatusNow = document.getElementById(imgView);
+	var currentTableToSort = document.getElementById(tabelId);
+	var temp = new Array();
+	for(var i = 0; i < currentTableToSort.rows[0].cells.length; ++i)
+	{
+	  temp = (currentTableToSort.rows[0].cells(i).className).split(' ');
+	  if(temp[0] != 'noSorting')
+	  {	  
+	   if( i == colCount*1)
+	   {
+	      currentTableToSort.rows[0].cells(i).className = appendClasses(currentTableToSort.rows[0].cells(i).className, 'sorted'); 
+	   }
+	   else
+	   {
+	      currentTableToSort.rows[0].cells(i).className = appendClasses(currentTableToSort.rows[0].cells(i).className, 'hideRightNow');
+		  document.getElementById(tabelId + i).className = 'disappear';
+		  document.getElementById(tabelId + i).name = 'noName';
+		  document.getElementById(tabelId + i).src = 'images/sort_arrow_down.gif'; 
+	   }
+	  }	   
+	}
+  }
+
+function sortTable(col, tableToSort1,imgID)
+  { 
+    var tableToSort = document.getElementById(tableToSort1);
+	var iCurCell = col + tableToSort.rows[0].cells.length; 
+    var totalRows = tableToSort.rows.length;
+    var bSort = 0;
+    var colArray = new Array();
+    var oldIndex = new Array();
+    var indexArray = new Array();
+    var bArray = new Array();
+    var newRow;
+    var newCell;
+    var i;
+    var c;
+    var j;    
+    var control ='y';
+    
+    for (i=1; i < tableToSort.rows.length; i++)
+      {
+        colArray[i - 1] = setDataType(tableToSort.cells(iCurCell).innerText); 
+        iCurCell = iCurCell + tableToSort.rows[0].cells.length;
+      }
+    // ** COPY ARRAY FOR COMPARISON AFTER SORT
+    for (i=0; i < colArray.length; i++)
+      {
+        bArray[i] = colArray[i];
+      }
+    // ** SORT THE COLUMN ITEMS   
+    for (i=0; i < colArray.length; i++)
+      { 
+        
+        if(colArray[i] == colArray[0])
+        {
+           control = 'equal';
+        }
+        else
+        {
+           control = 'notEqual';
+           break;
+        }
+      }
+    if(control != 'equal')
+    {  
+       colArray.sort(); 
+    }
+       
+		
+    for (i=0; i < colArray.length; i++)
+      { // LOOP THROUGH THE NEW SORTED ARRAY
+        indexArray[i] = (i+1);
+        for(j=0; j < bArray.length; j++)
+          { // LOOP THROUGH THE OLD ARRAY
+            if (colArray[i] == bArray[j])
+              {  // WHEN THE ITEM IN THE OLD AND NEW MATCH, PLACE THE
+                // CURRENT ROW NUMBER IN THE PROPER POSITION IN THE
+                // NEW ORDER ARRAY SO ROWS CAN BE MOVED ....
+                // MAKE SURE CURRENT ROW NUMBER IS NOT ALREADY IN THE
+                // NEW ORDER ARRAY
+                for (c=0; c<i; c++)
+                  {
+                    if ( oldIndex[c] == (j+1) )
+                    {
+                      bSort = 1;
+                    }
+                      }
+                      if (bSort == 0)
+                        {
+                          oldIndex[i] = (j+1);
+                        }
+                          bSort = 0;
+                        }
+          }
+    }
+  // ** SORTING COMPLETE, ADD NEW ROWS TO BASE OF TABLE ....  
+  if(document.getElementById(imgID).name == 'sortingAsc' || control == 'equal')
+  {         
+   if(control == 'equal')
+   {
+     if(document.getElementById(imgID).name == 'noName')
+     {
+     	document.getElementById(imgID).name = 'sortingAsc'; 
+     	document.getElementById(imgID).className = 'showRightNow';
+        document.getElementById(imgID).src = 'images/sort_arrow_down.gif';
+     }
+     else if(document.getElementById(imgID).name == 'sortingAsc')
+     {        
+        document.getElementById(imgID).name = 'sortingDec'; 
+        document.getElementById(imgID).className = 'showRightNow';
+        document.getElementById(imgID).src = 'images/sort_arrow_up.gif';
+     }
+     else if(document.getElementById(imgID).name == 'sortingDec')
+     {
+        document.getElementById(imgID).name = 'sortingAsc'; 
+     	document.getElementById(imgID).className = 'showRightNow';
+        document.getElementById(imgID).src = 'images/sort_arrow_down.gif';
+     }
+   }
+   else
+   {
+   document.getElementById(imgID).name = 'sortingDec'; 
+   document.getElementById(imgID).className = 'showRightNow';
+   document.getElementById(imgID).src = 'images/sort_arrow_up.gif';
+    //alert('Hem2');
+   }
+   var ctr = 'y';
+   for (i=oldIndex.length-1; i>=0; i--)
+    {
+      newRow = tableToSort.insertRow();
+	  if(ctr == 'y') 
+	   {
+	     newRow.className = "odd";
+	     ctr = 'n';
+	   }
+	   else 
+	   {
+	     newRow.className = "even";
+	     ctr = 'y';
+	   }
+      for (c=0; c<tableToSort.rows[0].cells.length; c++)
+        {
+          newCell = newRow.insertCell();
+		  newCell.className = tableToSort.rows[1].cells(c).className;
+          newCell.innerHTML = tableToSort.rows(oldIndex[i]).cells(c).innerHTML;
+        }
+      }
+  }
+  else
+  {
+    document.getElementById(imgID).name = 'sortingAsc';
+    document.getElementById(imgID).className = 'showRightNow';
+	document.getElementById(imgID).src = 'images/sort_arrow_down.gif';
+	
+	var ctr = 'y';
+    for (i=0; i<oldIndex.length; i++)
+    {
+      newRow = tableToSort.insertRow();
+	  if(ctr == 'y') 
+	   {
+	     newRow.className = "odd";
+	     ctr = 'n';
+	   }
+	   else 
+	   {
+	     newRow.className = "even";
+	     ctr = 'y';
+	   }
+      for (c=0; c<tableToSort.rows[0].cells.length; c++)
+        {
+          newCell = newRow.insertCell();
+		  newCell.className = tableToSort.rows[1].cells(c).className;
+          newCell.innerHTML = tableToSort.rows(oldIndex[i]).cells(c).innerHTML;
+        }		
+      }
+  }  
+  //MOVE NEW ROWS TO TOP OF TABLE ....
+  for (i=1; i<totalRows; i++)
+    {
+      tableToSort.moveRow((tableToSort.rows.length -1),1);
+    }
+  //DELETE THE OLD ROWS FROM THE BOTTOM OF THE TABLE ....  
+  for (i=1; i<totalRows; i++)
+    {
+      tableToSort.deleteRow();
+    }
+	StyleImageSettings(imgID,tableToSort1,col);
+  }
+
+  function sortIncomes(names,tableName)
+	{
+		if(names.indexOf(',') == -1 )
+		{
+			sortTable(0, 'incomesTable0','incomesTable00');
+		}
+		else
+		{
+			sortTable(0, 'incomesTable1','incomesTable10');
+			sortTable(0, 'incomesTable0','incomesTable00');						
+		}
+	}
